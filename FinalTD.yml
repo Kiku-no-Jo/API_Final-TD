@@ -1,0 +1,310 @@
+openapi: 3.0.1
+info:
+  title: Football Manager
+  description: API for managing football competitions, teams, and players.
+  version: 1.0.0
+
+servers:
+  - url: https://HEIFootballManager.com
+
+paths:
+  /tournaments:
+    post:
+      summary: Create a new tournament
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TournamentCreatorRequest"
+            examples:
+              add_liga:
+                summary: Add a tournament named LIGA in Spain
+                value:
+                  name: LIGA
+                  location: Spain
+      responses:
+        "201":
+          description: Tournament created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TournamentCreatorResponse"
+
+    get:
+      summary: Get a list of tournaments
+      parameters:
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: integer
+          description: page number.
+        - in: query
+          name: pageSize
+          required: true
+          schema:
+            type: integer
+          description: number of items on page
+      responses:
+        "200":
+          description: A list of tournamnets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TournamentCreatorResponse"
+
+  /teams:
+    post:
+      summary: Create a new team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamCreatorRequest"
+      responses:
+        "201":
+          description: Team created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamCreatorResponse"
+
+    get:
+      summary: Get a list of teams
+      parameters:
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: integer
+          description: Page's number.
+        - in: query
+          name: pageSize
+          required: true
+          schema:
+            type: integer
+          description: Items per page.
+        - in: query
+          name: teamName
+          schema:
+            type: string
+          description: Filter teams by name.
+      responses:
+        "200":
+          description: A list of teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamCreatorResponse"
+
+  /teams/{teamId}/players:
+    post:
+      summary: Create a new player for a team
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema:
+            type: integer
+          description: team's ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlayerCreatorRequest"
+      responses:
+        "201":
+          description: Player created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerCreatorResponse"
+
+    get:
+      summary: Get team's roster
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema:
+            type: integer
+          description: Team's ID.
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: integer
+          description: Page's number.
+        - in: query
+          name: pageSize
+          required: true
+          schema:
+            type: integer
+          description: Items per page.
+        - in: query
+          name: playerName
+          schema:
+            type: string
+          description: Filter players by name.
+      responses:
+        "200":
+          description: Team's roster
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlayerCreatorResponse"
+
+  /teams/{teamId}/tournaments:
+    post:
+      summary: Associate a team with tournament
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema:
+            type: integer
+          description: Team's id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+              description: List of tournament IDs to associate with the team.
+      responses:
+        "204":
+          description: Team associated with tournaments successfully
+
+  /teams/{teamId}/players/transfer:
+    post:
+      summary: Transfer players to a team
+      parameters:
+        - in: path
+          name: teamId
+          required: true
+          schema:
+            type: integer
+          description: Team's ID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+              description: List of player IDs to associate with the team.
+      responses:
+        "204":
+          description: Players transferred successfully
+
+components:
+  schemas:
+    TournamentCreatorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Tournament name attribute.
+        location:
+          type: string
+          description: The location of the tournament.
+      required:
+        - name
+        - location
+
+    TournamentCreatorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Tournament's ID.
+        name:
+          type: string
+          description: Tournament's name.
+        location:
+          type: string
+          description: Tournament's location.
+
+    TeamCreatorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Team's name.
+        slogan:
+          type: string
+          description: Team's slogan.
+      required:
+        - name
+        - slogan
+
+    TeamCreatorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Created team's ID.
+        name:
+          type: string
+          description: Created team's name.
+        slogan:
+          type: string
+          description: Created team's slogan.
+        competitions:
+          type: array
+          items:
+            $ref: "#/components/schemas/TournamentCreatorResponse"
+          description: The list of competitions the team is participating in.
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlayerCreatorResponse"
+          description: Team roster.
+
+    PlayerCreatorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Player's name.
+        number:
+          type: integer
+          description: Jersey number
+        strongFoot:
+          type: string
+          description: Dominant foot
+          enum:
+            - Left
+            - Right
+      required:
+        - name
+        - number
+        - strongFoot
+
+    PlayerCreatorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Player's ID.
+        name:
+          type: string
+          description: Player's name.
+        number:
+          type: integer
+          description: Player's Jersey number.
+        strongFoot:
+          type: string
+          description: Player's dominant foot.
